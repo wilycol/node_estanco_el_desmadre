@@ -7,14 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#0ea5e9',
-        secondary: '#8b5cf6',
-        accent: '#f97316',
-        dark: '#0a0a0c',
+        primary: '#f97316', // Naranja Titan
+        secondary: '#0f172a',
+        accent: '#fb923c',
+        dark: '#020617',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       }
     },
   },
