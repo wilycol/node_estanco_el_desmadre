@@ -14,6 +14,18 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return response.status(200).end();
   }
 
+  const startTime = Date.now();
+  const nodeId = 'node_estanco_el_desmadre';
+  const omniCoreUrl = process.env.OMNI_CORE_API_URL || 'https://neural-nexus-inky.vercel.app/api/ai/generate';
+  
+  let telemetryUrl = '';
+  try {
+    const urlObj = new URL(omniCoreUrl);
+    telemetryUrl = `${urlObj.protocol}//${urlObj.host}/api/telemetry/report`;
+  } catch {
+    telemetryUrl = 'https://neural-nexus-inky.vercel.app/api/telemetry/report';
+  }
+
   try {
     // 1. Verificar autorización del cron (Secret de Vercel)
     const authHeader = request.headers['authorization'];
@@ -23,7 +35,6 @@ export default async function handler(request: VercelRequest, response: VercelRe
     }
 
     // Configuración de metadatos del nodo (ADN de Estanco El Desmadre)
-    const nodeId = 'node_estanco_el_desmadre';
     const businessName = 'Estanco El Desmadre';
     const niche = 'General';
     const city = 'Colombia';
@@ -31,11 +42,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
     if (!supabaseKey) {
-      return response.status(500).json({ error: 'Falta la clave de Supabase' });
+      throw new Error('Falta la clave de Supabase');
     }
 
     // 2. Consulta de IA vía Pasarela Central Neural API DB (Omni Core)
-    const omniCoreUrl = process.env.OMNI_CORE_API_URL || 'https://neural-nexus-inky.vercel.app/api/ai/generate';
     const omniCoreToken = process.env.OMNI_CORE_API_KEY || 'beatriz_publisher_sync_key_2026';
 
     const prompt = `Actúa como redactor publicitario para el negocio "${businessName}" en la ciudad de "${city}". Su nicho es "${niche}". Genera una noticia de marketing corta, atractiva y profesional para su feed web. Devuelve la respuesta en formato JSON plano con los campos: "title" (título corto y potente), "category" (Moda, Tecnología, Soporte, Servicios o Novedades), "summary" (resumen de 1 frase), "content" (artículo de 3-4 frases).`;
@@ -141,6 +151,22 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     const insertedData = await insertResponse.json();
 
+    // Reportar telemetría exitosa
+    try {
+      const executionTimeMs = Date.now() - startTime;
+      await fetch(telemetryUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nodeId,
+          status: 'success',
+          executionTimeMs
+        })
+      });
+    } catch (telemetryErr) {
+      console.error('Fallo al reportar telemetría:', telemetryErr);
+    }
+
     return response.status(200).json({
       success: true,
       message: 'Post autónomo publicado exitosamente',
@@ -149,6 +175,24 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   } catch (error) {
     console.error('Error en el auto-publicador del nodo:', error);
+    
+    // Reportar telemetría fallida
+    try {
+      const executionTimeMs = Date.now() - startTime;
+      await fetch(telemetryUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nodeId,
+          status: 'failed',
+          executionTimeMs,
+          errorMessage: error instanceof Error ? error.message : String(error)
+        })
+      });
+    } catch (telemetryErr) {
+      console.error('Fallo al reportar telemetría de error:', telemetryErr);
+    }
+
     return response.status(500).json({
       error: error instanceof Error ? error.message : 'Error interno'
     });

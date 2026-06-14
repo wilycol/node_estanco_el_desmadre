@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Star, Heart, ArrowRight, Truck, Shield, RotateCcw, Beer, Wine, GlassWater, Zap, Instagram, Facebook, Twitter, Flame, Award, Clock } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { ShoppingCart, Star, Heart, ArrowRight, Shield, RotateCcw, Beer, Wine, Zap, Instagram, Facebook, Twitter, Flame, Award, Clock } from "lucide-react";
 
 // --- NEURAL DNA COMPONENT (AUTONOMOUS FEED) ---
 const NeuralFeed = ({ businessName, accentColor }: { businessName: string, accentColor: string }) => {
