@@ -70,12 +70,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       throw new Error('Formato de post inválido devuelto por Omni Core');
     }
 
-    // 3. Lógica de selección de imagen (Prioridad Galería Real, Fallback Picsum)
     let imageUrl = '';
-    
     // Verificar si existen recursos reales en el storage de Supabase para este nodo
     try {
-      const storageUrl = `${supabaseUrl}/storage/v1/object/list/public/business-assets`;
+      const storageUrl = `${supabaseUrl}/storage/v1/object/list/business-assets`;
       const listResponse = await fetch(storageUrl, {
         method: 'POST',
         headers: {
